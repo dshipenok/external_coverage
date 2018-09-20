@@ -1,0 +1,790 @@
+
+<html>
+	<head>
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/moon_small.css">
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+		<style>
+			body {
+				background-color: rgba(101,186,212,1);
+				/* background-color: #7bdefa; */
+				color: black;
+			}
+			/* .reveal section li {
+				font-family: Arial;
+				font-size: 1.2em;
+			} */
+			.reveal section ul {
+				font-family: Arial;
+				font-size: 1.2em;
+				list-style-type : square;
+				display: block;
+				text-align: left;
+				/* margin: 0 0 0 1em; */
+			}
+			#not_really, #well {
+				font-family: Arial;
+				font-size: 1.2em;
+				display: block;
+				text-align: left;
+			}
+			span.bsize {
+				font-family: Arial;
+				font-size: 1.2em;
+				text-align: left;
+			}
+			div.bsize {
+				font-family: Arial;
+				font-size: 1.2em;
+				text-align: left;
+			}
+			.reveal {
+				color: black;
+				font-family: Arial;
+			}
+			.reveal h3 {
+				text-align: left;
+				font-family: Arial;
+				font-weight: bold;
+				font-size: 1.25em;
+			}
+			#legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				/* top: 0; left: 0; right: 0; */
+				height: 42px;
+				/* border-bottom: 1px solid rgb(80, 80, 80); */
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.reveal .slide-number {
+				font-size: 32pt;
+			}
+			.hljs-addition,
+			.hljs-comment,
+			.hljs-quote,
+			.hljs-meta {
+				color: #7fff7f;
+			}
+
+.cov0 { color: rgb(255, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+					<h3>Measure end-to-end tests coverage</h3>
+					<img src="GoWayFest2_logo.png"
+						 alt="Logo" width="30%" style="float: left; border: none; box-shadow: none; background: rgba(255,255,255,0);">
+						 <br/>
+						 <br/>
+						 <img src="ozon.png"
+                         alt="Logo" width="30%" style="float: right; border: none; box-shadow: none; background: rgba(255,255,255,0);">
+					<aside class="notes">
+						Test
+					</aside>
+				</section>
+				<section>
+					<h3>Test types</h3>
+					<ul>
+						<div class="fragment" data-fragment-index="1"><li>Unit tests</li></div>
+						<div class="fragment" data-fragment-index="2"><li>All other tests</li></div>
+					</ul>
+				</ul></section>
+				<section>
+						<h3>Questions</h3>
+					<ul>
+						<div><li>How good are external tests?</li></div>
+						<div class="fragment" data-fragment-index="1"><li>Is there enough tests?</li></div>
+						<div class="fragment" data-fragment-index="2"><li>Does new ticket require additional tests?</li></div>
+					</ul>
+				</section>
+				<section>
+					<h3>Measuring the quality of tests</h3>
+					<ul>
+					<div class="fragment" data-fragment-index="1"><li>Code coverage percent for unit tests</li></div>
+					<div class="fragment" data-fragment-index="2"><li>For integration/external tests ... ?</li></div>
+					</ul>
+				</section>
+				<section>
+					<h3>Solution</h3>
+					<div class="bsize">Measure the code coverage of external tests</div>
+				</section>
+				<section>
+					<h3>Example</h3>
+					<div class="bsize">CalcAPI service</div>
+						<pre style="font-size: 0.75em; width: 100%"><code data-trim data-noescape>
+							├── cmd
+							│   └── calcapi
+							│       ├── main.go
+							│       └── main_test.go
+							└── service
+							    └── handlers.go 
+						</code></pre>	
+				</section>
+				<section>
+					<h3>main.go</h3>
+					<pre style="font-size: 0.55em; width: 100%"><code data-trim data-noescape>
+							package main
+							func multiply(a, b float64) float64 {
+								return a * b
+							}
+							func divide(a, b float64) float64 {
+								if b == 0 {
+									return math.Inf(1)
+								}
+								return a / b
+							}
+
+							func main() {
+								mux := http.NewServeMux()
+								mux.Handle("/multiply", service.NewHandlerBinaryOp(multiply))
+								mux.Handle("/divide", service.NewHandlerBinaryOp(divide))
+								stop := make(chan os.Signal, 1)
+								signal.Notify(stop, os.Interrupt)
+								go func() { http.ListenAndServe(":8080", mux) }()
+								<-stop
+							}
+					</code></pre>
+				</section>
+				<section>
+						<h3>main_test.go</h3>
+						<pre class="golang" style="font-size: 0.55em; width: 100%"><code data-trim data-noescape>
+								package main
+								
+								func Test_Multiply_ByZero_ExpectZero(t *testing.T) {
+									r := multiply(0, 10)
+								
+									assert.EqualValues(t, 0, r)
+								}
+								
+								func Test_Divide_DivideByZero_ExpectInfinity(t *testing.T) {
+									r := divide(1, 0)
+								
+									assert.Equal(t, math.Inf(1), r)
+								}								
+						</code></pre>
+				</section>
+
+				<section>
+					<h3 style="text-align:center">Let's modify our service!</h3>
+					<img src="go_run.png"
+						 alt="GopherRun" width="30%" style="border: none; box-shadow: none; background: rgba(255,255,255,0);">
+				
+					<aside class="notes">
+						Let's modify service so it will be able to measure the code coverage.
+						But to do this first of all let's define what tests are.
+					</aside>
+				</section>
+
+				<section>
+					<h3>What are tests in Go?</h3>
+					<ul>
+						<div class="fragment" data-fragment-index="1"><li>Executable file</li></div>
+						<div class="fragment" data-fragment-index="2"><li>Different entry point</li></div>
+						<div class="fragment" data-fragment-index="3"><li>Code for coverage measurement</li></div>
+					</ul>
+					<aside class="notes">
+						So we have to call ordinary entry point, get binary file and generate report.
+						Fortunately Go already have everything required to do this.
+					</aside>
+				</section>
+
+                <section>
+					<h3>Code changes</h3>
+					<ul>
+						<div class="fragment" data-fragment-index="1"><li>Create entry point TestMain</li></div>
+						<div class="fragment" data-fragment-index="2"><li>Call main() from it</li></div>
+						<div class="fragment" data-fragment-index="3"><li>Get code coverage report</li></div>
+						<div class="fragment" data-fragment-index="4"><li>Don't break what already works :)</li></div>
+					</ul>
+				</section>
+
+				<section>
+					<h3>coverage_test.go</h3>
+					<pre class="golang" style="font-size: 0.55em; width: 100%"><code data-trim data-noescape>
+							<span class="fragment" data-fragment-index="1">// +build coverage</span>
+
+							package main
+
+							func TestMain(m *testing.M) {
+								<span class="fragment" data-fragment-index="2">flag.Parse() // need to call manually</span>
+								main()
+								<span class="fragment" data-fragment-index="3">flushReport()</span>
+							}
+							<span class="fragment" data-fragment-index="3">
+							func flushReport() {
+								testing.MainStart(&testDeps{}, nil, nil, nil).Run()
+							}
+
+							type testDeps struct{}						
+							func (d testDeps) MatchString(pat, str string) (bool, error)   { return false, nil }
+							func (d testDeps) StartCPUProfile(io.Writer) error             { return nil }
+							func (d testDeps) StopCPUProfile()                             {}
+							func (d testDeps) WriteHeapProfile(io.Writer) error            { return nil }
+							func (d testDeps) WriteProfileTo(string, io.Writer, int) error { return nil }
+							func (d testDeps) ImportPath() string                          { return "" }
+							func (d testDeps) StartTestLog(io.Writer)                      {}
+							func (d testDeps) StopTestLog() error                          { return nil }</span>
+					</code></pre>
+				</section>
+
+				<section>
+						<h3>Building the binary</h3>
+						<pre style="font-size: 0.65em; width: 100%"><code class="console" data-trim data-noescape>
+							> go test -tags=coverage -c -o ../../bin/calcapi.coverage
+							-coverpkg ./... ./cmd/calcapi 
+						</code></pre>
+				</section>
+
+				<section>
+					<div class="bsize">Build service</div>
+					<pre style="font-size: 0.55em; width: 100%"><code class="console" data-trim data-noescape>
+						> go test -tags=coverage -c -o ../../bin/calcapi.coverage
+						-coverpkg ./... ./cmd/calcapi
+					</code></pre>
+					<div class="bsize">...run it</div>
+					<pre style="font-size: 0.55em; width: 100%"><code class="console" data-trim data-noescape>
+						> ../../bin/calcapi.coverage -test.coverprofile=coverage.out
+					</code></pre>
+					<div class="bsize">...check it</div>
+					<pre style="font-size: 0.55em; width: 100%"><code class="console" data-trim data-noescape>
+						> curl -X GET "localhost:8080/divide?a=1&b=10"
+						0.1
+					</code></pre>
+					<div class="bsize">...and</div>
+				</section>
+				
+				<section>
+					<div class="bsize">stop by CTRL + C</div>
+					<pre style="font-size: 0.75em; width: 100%"><code class="console" data-trim data-noescape>
+						^C
+						testing: warning: no tests to run
+						PASS
+						coverage: 79.3% of statements in ./...
+					</code></pre>
+					<div id="well" class="fragment" data-fragment-index="1" >Well...</div>
+				</section>
+				<section>
+					<h3>coverage_test.go</h3>
+					<pre style="font-size: 0.55em; width: 100%"><code data-trim data-noescape>
+						func flushReport() { <span class="fragment" data-fragment-index="1"> 
+							oldstdout := os.Stdout
+							oldstderr := os.Stderr
+							os.Stdout, _ = os.Open(os.DevNull)
+							os.Stderr, _ = os.Open(os.DevNull)
+						</span> 							
+							testing.MainStart(&testDeps{}, nil, nil, nil).Run()
+							
+							<span class="fragment" data-fragment-index="1">os.Stdout = oldstdout
+							os.Stderr = oldstderr</span>
+						}
+					</code></pre>
+				</section>
+
+				<section>
+					<div id="topbar">
+						<div id="nav">
+								<select id="files">								
+								<option value="file0">calcapi/cmd/calcapi/main.go (83.3%)</option>
+								</select>
+						</div>
+						<div id="legend" style="background: black; color: rgb(100, 100, 100); font-weight: 700; font-size: 14; font-family: Menlo, monospace; display: block;">
+								
+								<span>not tracked</span>
+								<span class="cov0">no coverage</span>
+								<span class="cov1">low coverage</span>
+								<span class="cov2">*</span>
+								<span class="cov3">*</span>
+								<span class="cov4">*</span>
+								<span class="cov5">*</span>
+								<span class="cov6">*</span>
+								<span class="cov7">*</span>
+								<span class="cov8">*</span>
+								<span class="cov9">*</span>
+								<span class="cov10">high coverage</span>
+							
+							</div>
+						</div>
+					<div id="content">
+					<pre style="background: black; color: rgb(100, 100, 100); font-weight: bold; font-family: Menlo, monospace; font-size: 0.50em; width: 90%">package main
+import (...)
+
+func multiply(a, b float64) float64 <span class="cov0" title="0">{
+	return a * b
+}</span>
+
+func divide(a, b float64) float64 <span class="cov8" title="1">{
+	if b == 0 </span><span class="cov0" title="0">{
+		return math.Inf(1)
+	}</span>
+	<span class="cov8" title="1">return a / b</span>
+}
+
+func main() <span class="cov8" title="1">{
+        mux := http.NewServeMux()
+        mux.Handle("/multiply", service.NewHandlerBinaryOp(multiply))
+        mux.Handle("/divide", service.NewHandlerBinaryOp(divide))
+
+        stop := make(chan os.Signal, 1)
+        signal.Notify(stop, os.Interrupt)
+        go func() </span><span class="cov8" title="1">{ http.ListenAndServe(":8080", mux) }</span>()
+        <span class="cov8" title="1">&lt;-stop</span>
+}</pre></div>
+	<div><a href="#/18">&gt;</a></div>
+	<div style="position: absolute; right: 60; top: 60; display: block; font-size:2em; color: white">83.3%</div>
+				</section>
+				
+				<section>
+						<h3>main.go</h3>
+						<pre style="font-size: 0.65em; width: 100%"><code data-trim data-noescape>
+								func divide(a, b float64) float64 {
+									if b == 0 {
+										return math.Inf(1)
+									} <span class="fragment" data-fragment-index="1">else if b == 10 {
+										return a * 0.1
+									}</span>
+									return a / b
+								}
+						</code></pre>
+				</section>
+
+				<section>
+							<div id="topbar">
+								<div id="nav">
+										<select id="files">								
+										<option value="file0">calcapi/cmd/calcapi/main.go (78.6%)</option>
+										</select>
+								</div>
+								<div id="legend" style="background: black; color: rgb(100, 100, 100); font-weight: 700; font-size: 14; font-family: Menlo, monospace; display: block;">
+										
+										<span>not tracked</span>
+										<span class="cov0">no coverage</span>
+										<span class="cov1">low coverage</span>
+										<span class="cov2">*</span>
+										<span class="cov3">*</span>
+										<span class="cov4">*</span>
+										<span class="cov5">*</span>
+										<span class="cov6">*</span>
+										<span class="cov7">*</span>
+										<span class="cov8">*</span>
+										<span class="cov9">*</span>
+										<span class="cov10">high coverage</span>
+									
+									</div>
+								</div>
+		<div id="content">
+		<pre style="background: black; color: rgb(100, 100, 100); font-weight: bold; font-family: Menlo, monospace; font-size: 0.50em; width: 90%">package main
+import (...)
+
+func multiply(a, b float64) float64 <span class="cov0" title="0">{
+	return a * b
+}</span>
+
+func divide(a, b float64) float64 <span class="cov8" title="1">{
+	if b == 0 </span><span class="cov0" title="0">{
+			return math.Inf(1)
+	}</span> else<span class="cov8" title="1"> if b == 10 </span><span class="cov8" title="1">{
+			return a * 0.1
+	}</span>
+	<span class="cov0" title="0">return a / b</span>
+}
+
+func main() <span class="cov8" title="1">{
+	mux := http.NewServeMux()
+	mux.Handle("/multiply", service.NewHandlerBinaryOp(multiply))
+	mux.Handle("/divide", service.NewHandlerBinaryOp(divide))
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt)
+	go func() </span><span class="cov8" title="1">{ http.ListenAndServe(":8080", mux) }</span>()
+	<span class="cov8" title="1">&lt;-stop</span>
+} </pre></div>
+		<div><a href="#/16">&lt;</a><a href="#/26">&gt;</a></div>
+		<div style="position: absolute; right: 60; top: 60; display: block; font-size:2em; color: white">78.6%</div>
+				</section>
+
+				<section>
+					<h3>What about performance?</h3>
+					<ul>
+						<li>Are code changes complex?</li>
+						<li>Does it affect performance a lot?</li>
+					</ul>
+					<div id="not_really" class="fragment" data-fragment-index="1">Not really</div>
+				</section>
+
+				<section>
+						<h3>Go isn't magic</h3>
+					<pre style="font-size: 0.65em; width: 100%"><code class="console" data-trim data-noescape>
+						> go tool cover -mode=set -var=C ./cmd/calcapi/main.go >
+						main_set.go
+					</code></pre>
+				</section>
+
+				<section>
+					<h3>main_set.go</h3>
+					<pre style="font-size: 0.54em; width: 100%"><code data-trim data-noescape>
+							package main
+							import (...)
+							
+							func multiply(a, b float64) float64 {C.Count[0] = 1;
+								return a * b
+							}
+							
+							func divide(a, b float64) float64 {C.Count[1] = 1;
+								if b == 0 {C.Count[3] = 1;
+									return math.Inf(1)
+								} else{ C.Count[4] = 1;if b == 10 {C.Count[5] = 1;
+									return a * 0.1
+								}}
+								C.Count[2] = 1;return a / b
+							}
+							
+							func main() {C.Count[6] = 1;
+								mux := http.NewServeMux()
+								mux.Handle("/multiply", service.NewHandlerBinaryOp(multiply))
+								mux.Handle("/divide", service.NewHandlerBinaryOp(divide))
+							
+								stop := make(chan os.Signal, 1)
+								signal.Notify(stop, os.Interrupt)
+								go func() {C.Count[8] = 1; http.ListenAndServe(":8080", mux) }()
+								C.Count[7] = 1;<-stop
+							}
+							
+							var C = struct {
+								Count     [9]uint32
+								Pos       [3 * 9]uint32
+								NumStmt   [9]uint16
+							} {
+								Pos: [3 * 9]uint32{
+									12, 14, 0x20025, // [0]
+									16, 17, 0xc0023, // [1]
+									22, 22, 0xe0002, // [2]
+									17, 19, 0x3000c, // [3]
+									19, 19, 0x140008, // [4]
+									19, 21, 0x30014, // [5]
+									25, 32, 0xc000d, // [6]
+									33, 33, 0x80002, // [7]
+									32, 32, 0x31000c, // [8]
+								},
+								NumStmt: [9]uint16{
+									1, // 0
+									1, // 1
+									1, // 2
+									1, // 3
+									1, // 4
+									1, // 5
+									6, // 6
+									1, // 7
+									1, // 8
+								},
+							}							
+					</code></pre>
+				</section>
+
+				<section>
+					<h3>Summary</h3>
+					<ul>
+					<div class="fragment" data-fragment-index="1"><li>How good are external tests?</li></div>
+					<div class="fragment" data-fragment-index="2"><li>Is there enough tests?</li></div>
+					<div class="fragment" data-fragment-index="3"><li>Does new ticket require additional tests?</li></div>
+					</ul>
+				</section>
+
+				<section>
+					<h3>Our experience</h3>
+					<ul>
+						<li>Check coverage ONLY of business logic</li>
+						<li>Performance difference is negligible</li>
+					</ul>
+				</section>
+
+				<section>
+					<h3>Real profit we got</h3>
+					<pre style="font-size: 0.55em; width: 100%"><code data-trim data-noescape>
+					breadcrumbs.go			(87.0%)
+					breadcrumbs_legacy.go		(87.1%)
+					breadcrumbs_mgr.go 		(100.0%)
+					canbecompared.go 		(0.0%)	// 0%
+					feedback.go 			(94.4%)
+					item.go				(79.4%)
+					marketing_mark.go 		(90.2%)
+					return_info.go 			(91.9%)
+					sellers.go			(95.6%)
+					sellers_delivery.go 		(100.0%)
+					sellers_name.go			(95.7%)
+					variants_extra.go 		(89.4%)
+					variants_markeddown.go	 	(95.9%)
+					variants_md_extra.go 		(13.0%)	// 13%
+				</code></pre>
+				</section>
+
+				<section>
+					<h3>Bad news</h3>
+					<div class="bsize">Percent of code coverage is unstable metric</div>
+				</section>
+
+				<section>
+						<div id="topbar">
+							<div id="nav">
+									<select id="files">								
+									<option value="file0">calcapi/cmd/calcapi/main.go (83.3%)</option>
+									</select>
+							</div>
+							<div id="legend" style="background: black; color: rgb(100, 100, 100); font-weight: 700; font-size: 14; font-family: Menlo, monospace; display: block;">
+									
+									<span>not tracked</span>
+									<span class="cov0">no coverage</span>
+									<span class="cov1">low coverage</span>
+									<span class="cov2">*</span>
+									<span class="cov3">*</span>
+									<span class="cov4">*</span>
+									<span class="cov5">*</span>
+									<span class="cov6">*</span>
+									<span class="cov7">*</span>
+									<span class="cov8">*</span>
+									<span class="cov9">*</span>
+									<span class="cov10">high coverage</span>
+								
+								</div>
+							</div>
+	<div id="content">
+	<pre style="background: black; color: rgb(100, 100, 100); font-weight: bold; font-family: Menlo, monospace; font-size: 0.50em; width: 90%">package main
+import (...)
+
+func multiply(a, b float64) float64 <span class="cov0" title="0">{
+	return a * b
+}</span>
+
+func divide(a, b float64) float64 <span class="cov8" title="1">{
+	<mark>var zero float64</mark>
+	<mark>ten := float64(10)</mark>
+	<mark>inf := math.Inf(1)</mark>
+	<mark>tenthPart := 0.1</mark>
+	if b == zero </span><span class="cov0" title="0">{
+		return inf
+	}</span> else<span class="cov8" title="1"> if b == ten </span><span class="cov8" title="1">{
+		return a * tenthPart
+	}</span>
+	<span class="cov0" title="0">return a / b</span>
+}
+
+func main() <span class="cov8" title="1">{
+	mux := http.NewServeMux()
+	mux.Handle("/multiply", service.NewHandlerBinaryOp(multiply))
+	mux.Handle("/divide", service.NewHandlerBinaryOp(divide))
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt)
+	go func() </span><span class="cov8" title="1">{ http.ListenAndServe(":8080", mux) }</span>()
+	<span class="cov8" title="1">&lt;-stop</span>
+} </pre></div>
+	<a href="#/18">&lt;</a>
+	<div style="position: absolute; right: 60; top: 60; display: block; font-size:2em; color: white">83.3%</div>
+			</section>
+
+			<section>
+				<h3>What else</h3>
+				<ul>
+					<li>Measure of full coverage with gocovmerge</li>
+					<li>Really dead code detection</li>
+				</ul>
+			</section>
+			
+			<section>
+				<h3>gocovmerge</h3>
+				<div class="bsize">Installation</div>
+				<pre style="font-size: 0.65em; width: 100%"><code class="console" data-trim data-noescape>
+					> go get -u github.com/wadey/gocovmerge
+				</code></pre>
+				<div class="bsize">Merge</div>
+				<pre style="font-size: 0.65em; width: 100%"><code class="console" data-trim data-noescape>
+					> gocovmerge coverage.out integration.out > merged.out
+				</code></pre>
+				<div class="bsize">Report</div>
+				<pre style="font-size: 0.65em; width: 100%"><code class="console" data-trim data-noescape>
+					> go tool cover -html=merged.out
+				</code></pre>
+			</section>
+			
+			<section>
+				<div id="topbar">
+					<div id="nav">
+							<select id="files">								
+							<option value="file0">calcapi/cmd/calcapi/main.go (21.4%)</option>
+							</select>
+					</div>
+					<div id="legend" style="background: black; color: rgb(100, 100, 100); font-weight: 700; font-size: 14; font-family: Menlo, monospace; display: block;">
+							
+							<span>not tracked</span>
+							<span class="cov0">no coverage</span>
+							<span class="cov1">low coverage</span>
+							<span class="cov2">*</span>
+							<span class="cov3">*</span>
+							<span class="cov4">*</span>
+							<span class="cov5">*</span>
+							<span class="cov6">*</span>
+							<span class="cov7">*</span>
+							<span class="cov8">*</span>
+							<span class="cov9">*</span>
+							<span class="cov10">high coverage</span>
+						
+						</div>
+					</div>
+<div id="content">
+<pre style="background: black; color: rgb(100, 100, 100); font-weight: bold; font-family: Menlo, monospace; font-size: 0.50em; width: 90%">package main
+import (...)
+
+func multiply(a, b float64) float64 <span class="cov8" title="1">{
+	return a * b
+}</span>
+
+func divide(a, b float64) float64 <span class="cov8" title="1">{
+	if b == 0 </span><span class="cov8" title="1">{
+		return math.Inf(1)
+	}</span> else<span class="cov0" title="0"> if b == 10 </span><span class="cov0" title="0">{
+		return a * 0.1
+	}</span>
+	<span class="cov0" title="0">return a / b</span>
+}
+
+func main() <span class="cov0" title="0">{
+	mux := http.NewServeMux()
+	mux.Handle("/multiply", service.NewHandlerBinaryOp(multiply))
+	mux.Handle("/divide", service.NewHandlerBinaryOp(divide))
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt)
+	go func() </span><span class="cov0" title="0">{ http.ListenAndServe(":8080", mux) }</span>()
+	<span class="cov0" title="0">&lt;-stop</span>
+} </pre></div>
+<div style="position: absolute; right: 60; top: 60; display: block; font-size:2em; color: white">21.4%</div>
+			</section>
+
+			<section>
+				<div id="topbar">
+					<div id="nav">
+							<select id="files">								
+							<option value="file0">calcapi/cmd/calcapi/main.go (92.9%)</option>
+							</select>
+					</div>
+					<div id="legend" style="background: black; color: rgb(100, 100, 100); font-weight: 700; font-size: 14; font-family: Menlo, monospace; display: block;">
+							
+							<span>not tracked</span>
+							<span class="cov0">no coverage</span>
+							<span class="cov1">low coverage</span>
+							<span class="cov2">*</span>
+							<span class="cov3">*</span>
+							<span class="cov4">*</span>
+							<span class="cov5">*</span>
+							<span class="cov6">*</span>
+							<span class="cov7">*</span>
+							<span class="cov8">*</span>
+							<span class="cov9">*</span>
+							<span class="cov10">high coverage</span>
+						
+						</div>
+					</div>
+<div id="content">
+<pre style="background: black; color: rgb(100, 100, 100); font-weight: bold; font-family: Menlo, monospace; font-size: 0.50em; width: 90%">package main
+import (...)
+
+func multiply(a, b float64) float64 <span class="cov8" title="1">{
+	return a * b
+}</span>
+
+func divide(a, b float64) float64 <span class="cov8" title="1">{
+	if b == 0 </span><span class="cov8" title="1">{
+		return math.Inf(1)
+	}</span> else<span class="cov8" title="1"> if b == 10 </span><span class="cov8" title="1">{
+		return a * 0.1
+	}</span>
+	<span class="cov0" title="0">return a / b</span>
+}
+
+func main() <span class="cov8" title="1">{
+	mux := http.NewServeMux()
+	mux.Handle("/multiply", service.NewHandlerBinaryOp(multiply))
+	mux.Handle("/divide", service.NewHandlerBinaryOp(divide))
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt)
+	go func() </span><span class="cov8" title="1">{ http.ListenAndServe(":8080", mux) }</span>()
+	<span class="cov8" title="1">&lt;-stop</span>
+}</pre></div>
+<div style="position: absolute; right: 60; top: 60; display: block; font-size:2em; color: white">92.9%</div>
+			</section>
+
+			<section>
+				<h3>Really dead code</h3>
+				<ul>
+					<li>Have no code coverage</li>
+					<li>Hasn't been called in production</li>
+					<li>Probably you don't need it anymore</li>
+				</ul>
+			</section>
+
+			<section>
+				<h3>Thank you!</h3>
+				<img src="slides.svg"
+						 alt="QRCode" width="30%" style="float: left; border: none; box-shadow: none; background: rgba(255,255,255,0);">
+			<div style="width:100%; display: block; padding: 5px; text-align: left; margin-left: 300px; position: absolute">
+				Slides: <a style="text-decoration: underline; color: white" href="https://goo.gl/cKAeD7">goo.gl/cKAeD7</a><br/>
+				Repo: <a style="text-decoration: underline; color: white" href="https://github.com/dshipenok/coverapi">github.com/dshipenok/coverapi</a>
+				<br/><br/><br/>
+				Dmitry Shipenok<br/>
+				<a style="color:white" href="mailto:dshipenok@gmail.com?subject=Coverage presentation">dshipenok@gmail.com</a>
+			</div>
+			</section>
+		</div>
+
+			</div>
+		</div>
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script src="js/reveal.js"></script>
+		<script>
+			Reveal.initialize(
+				{
+					slideNumber:	true,
+					controls:		false,
+					dependencies: [
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/notes/notes.js', async: true }
+				]}
+			);
+		</script>
+	</body>
+</html>
