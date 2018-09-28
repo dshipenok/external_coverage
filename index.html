@@ -1,14 +1,16 @@
-
 <html>
+
 	<head>
 		<link rel="stylesheet" href="css/reveal.css">
 		<link rel="stylesheet" href="css/theme/moon_small.css">
 		<link rel="stylesheet" href="lib/css/zenburn.css">
 		<style>
 			body {
-				background-color: rgba(101,186,212,1);
-				/* background-color: #7bdefa; */
-				color: black;
+				background-color: #0074ff !important;
+				color: #eee8d5;
+			}
+			.reveal section {
+				color: #eee8d5;
 			}
 			/* .reveal section li {
 				font-family: Arial;
@@ -39,7 +41,7 @@
 				text-align: left;
 			}
 			.reveal {
-				color: black;
+				color: #eee8d5;
 				font-family: Arial;
 			}
 			.reveal h3 {
@@ -104,16 +106,16 @@
 		<div class="reveal">
 			<div class="slides">
 				<section>
-					<h3>Measure end-to-end tests coverage</h3>
+					<br/>
+					<img src="ozon.svg"
+					alt="Logo" width="30%" style="position: absolute; top:-50px; left:0px; border: none; box-shadow: none; background: rgba(255,255,255,0);">
+					<br/>
+					<div style="font-family: Arial; width:100%; text-align: left; font-weight: bold; color:#eee8d5; font-size: 1.7em;">
+						Measure end-to-end tests coverage</div>
+					<!-- <br/> -->
+					<div style="font-family: Arial; font-size: 1em; text-align: left; color:#eee8d5">Dmitry Shipenok</div>
 					<img src="GoWayFest2_logo.png"
-						 alt="Logo" width="30%" style="float: left; border: none; box-shadow: none; background: rgba(255,255,255,0);">
-						 <br/>
-						 <br/>
-						 <img src="ozon.png"
-                         alt="Logo" width="30%" style="float: right; border: none; box-shadow: none; background: rgba(255,255,255,0);">
-					<aside class="notes">
-						Test
-					</aside>
+						 alt="Logo" width="30%" style="position: absolute; bottom:-150px; right:0px; border: none; box-shadow: none; background: rgba(255,255,255,0);">
 				</section>
 				<section>
 					<h3>Test types</h3>
@@ -414,9 +416,9 @@ func multiply(a, b float64) float64 <span class="cov0" title="0">{
 
 func divide(a, b float64) float64 <span class="cov8" title="1">{
 	if b == 0 </span><span class="cov0" title="0">{
-			return math.Inf(1)
+		return math.Inf(1)
 	}</span> else<span class="cov8" title="1"> if b == 10 </span><span class="cov8" title="1">{
-			return a * 0.1
+		return a * 0.1
 	}</span>
 	<span class="cov0" title="0">return a / b</span>
 }
@@ -764,7 +766,7 @@ func main() <span class="cov8" title="1">{
 				Repo: <a style="text-decoration: underline; color: white" href="https://github.com/dshipenok/coverapi">github.com/dshipenok/coverapi</a>
 				<br/><br/><br/>
 				Dmitry Shipenok<br/>
-				<a style="color:white" href="mailto:dshipenok@gmail.com?subject=Coverage presentation">dshipenok@gmail.com</a>
+				<a style="color:white" href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#100;&#115;&#104;&#105;&#112;&#101;&#110;&#111;&#107;&#x40;&#x67;&#109;&#x61;&#x69;&#108;&#x2e;&#x63;&#111;&#109;&#63;&#115;&#117;&#98;&#106;&#101;&#99;&#116;&#61;&#67;&#111;&#118;&#101;&#114;&#97;&#103;&#101;&#32;&#112;&#114;&#101;&#115;&#101;&#110;&#116;&#97;&#116;&#105;&#111;&#110;">&#100;&#115;&#104;&#105;&#112;&#101;&#110;&#111;&#107;&#x40;&#x67;&#109;&#x61;&#x69;&#108;&#x2e;&#x63;&#111;&#109;</a>
 			</div>
 			</section>
 		</div>
@@ -774,7 +776,6 @@ func main() <span class="cov8" title="1">{
 		<script src="lib/js/head.min.js"></script>
 		<script src="js/reveal.js"></script>
 
-		<script src="js/reveal.js"></script>
 		<script>
 			Reveal.initialize(
 				{
